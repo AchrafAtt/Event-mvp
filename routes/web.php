@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PaiementController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecuPaiementController;
 use App\Http\Controllers\ReservationController;
 use Illuminate\Support\Facades\Route;
@@ -14,7 +15,25 @@ Route::inertia('/', 'welcome', [
 
 // Espace client
 Route::middleware(['auth'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])
+        ->middleware('admin')
+        ->name('dashboard');
+
+    Route::get('reservations/client-info', [ReservationController::class, 'clientInfo'])
+        ->name('reservations.client-info');
+    Route::get('reservations/event-details', [ReservationController::class, 'eventDetails'])
+        ->name('reservations.event-details');
+    Route::get('reservations/personalisation', [ReservationController::class, 'personalisation'])
+        ->name('reservations.personalisation');
+    Route::get('reservations/offer-price', [ReservationController::class, 'offerPrice'])
+        ->name('reservations.offer-price');
+
+    Route::get('reservations/payment', [ReservationController::class, 'payment'])
+        ->name('reservations.payment');
+    Route::post('reservations/complete-wizard', [ReservationController::class, 'completeWizard'])
+        ->name('reservations.complete-wizard');
+    Route::get('reservations/{reservation}/confirmation', [ReservationController::class, 'confirmation'])
+        ->name('reservations.confirmation');
 
     Route::resource('reservations', ReservationController::class)
         ->only(['index', 'create', 'store', 'show']);
@@ -25,7 +44,7 @@ Route::middleware(['auth'])->group(function () {
 
 // Espace admin
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
     Route::patch('reservations/{reservation}/statut', [AdminReservationController::class, 'changerStatut'])->name('reservations.statut');

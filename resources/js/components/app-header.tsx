@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookOpen, Folder, Menu, Search } from 'lucide-react';
+import { useMemo } from 'react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -31,21 +32,13 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { getAppHomeHref, getAppMainNav } from '@/lib/main-navigation';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
 };
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
 
 const rightNavItems: NavItem[] = [
     {
@@ -66,6 +59,12 @@ const activeItemStyles =
 export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
     const { auth } = page.props;
+    const role = auth.user?.role;
+    const mainNavItems = useMemo<NavItem[]>(
+        () => getAppMainNav(role),
+        [role],
+    );
+    const homeHref = useMemo(() => getAppHomeHref(role), [role]);
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
@@ -135,7 +134,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={homeHref}
                         prefetch
                         className="flex items-center space-x-2"
                     >
@@ -219,10 +218,10 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage
                                             src={auth.user?.avatar}
-                                            alt={auth.user?.name}
+                                            alt={auth.user?.nom}
                                         />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user?.name ?? '')}
+                                            {getInitials(auth.user?.nom ?? '')}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>

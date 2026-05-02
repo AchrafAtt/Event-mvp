@@ -1,0 +1,22 @@
+---
+description: Laravel backend conventions and security checks
+globs: app/**/*.php
+alwaysApply: false
+---
+
+# Event GH Backend Standards
+
+## Laravel Conventions
+- Use Laravel patterns and generators (`php artisan make:*`) for new backend classes.
+- Keep explicit parameter and return types on methods.
+- Use validation and clear authorization checks in controllers/services.
+
+## Domain and Security
+- `User.role` is `client` or `admin`; enforce admin authorization manually in code.
+- Preserve reservation workflow consistency (`en_attente` -> `confirmee` or `annulee`).
+- Do not introduce new dependencies or restructure base directories without explicit approval.
+
+## Quality Gates
+- Add or update automated tests for behavior changes.
+- Run targeted tests first: `php artisan test --compact --filter=...`.
+- Run formatter for changed PHP files: `vendor/bin/pint --dirty --format agent`.

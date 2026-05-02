@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class RecuPaiement extends Model
 {
+    protected $table = 'recus_paiement';
+
     protected function casts(): array
     {
         return [

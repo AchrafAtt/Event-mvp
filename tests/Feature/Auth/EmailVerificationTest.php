@@ -33,6 +33,24 @@ test('email can be verified', function () {
 
     Event::assertDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+    $response->assertRedirect(route('reservations.index', absolute: false).'?verified=1');
+});
+
+test('admin is redirected to the dashboard after email verification', function () {
+    $user = User::factory()->unverified()->admin()->create();
+
+    Event::fake();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $response = $this->actingAs($user)->get($verificationUrl);
+
+    Event::assertDispatched(Verified::class);
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
 });
 
@@ -70,8 +88,19 @@ test('email is not verified with invalid user id', function () {
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
-test('verified user is redirected to dashboard from verification prompt', function () {
-    $user = User::factory()->create();
+test('verified client is redirected to reservations from verification prompt', function () {
+    $user = User::factory()->create(['role' => 'client']);
+
+    Event::fake();
+
+    $response = $this->actingAs($user)->get(route('verification.notice'));
+
+    Event::assertNotDispatched(Verified::class);
+    $response->assertRedirect(route('reservations.index', absolute: false));
+});
+
+test('verified admin is redirected to the dashboard from verification prompt', function () {
+    $user = User::factory()->admin()->create();
 
     Event::fake();
 
@@ -81,8 +110,26 @@ test('verified user is redirected to dashboard from verification prompt', functi
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
-test('already verified user visiting verification link is redirected without firing event again', function () {
-    $user = User::factory()->create();
+test('already verified client visiting verification link is redirected without firing event again', function () {
+    $user = User::factory()->create(['role' => 'client']);
+
+    Event::fake();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $this->actingAs($user)->get($verificationUrl)
+        ->assertRedirect(route('reservations.index', absolute: false).'?verified=1');
+
+    Event::assertNotDispatched(Verified::class);
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+});
+
+test('already verified admin visiting verification link is redirected without firing event again', function () {
+    $user = User::factory()->admin()->create();
 
     Event::fake();
 

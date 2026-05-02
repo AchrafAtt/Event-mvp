@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TypeOffre;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,7 @@ class Reservation extends Model
     protected function casts(): array
     {
         return [
+            'type_offre' => TypeOffre::class,
             'date_reservation' => 'date',
             'prix_total' => 'decimal:2',
             'avance' => 'decimal:2',

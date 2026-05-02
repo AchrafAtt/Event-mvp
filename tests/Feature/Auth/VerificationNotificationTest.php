@@ -21,10 +21,22 @@ test('sends verification notification', function () {
     Notification::assertSentTo($user, VerifyEmail::class);
 });
 
-test('does not send verification notification if email is verified', function () {
+test('does not send verification notification if email is verified for a client', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['role' => 'client']);
+
+    $this->actingAs($user)
+        ->post(route('verification.send'))
+        ->assertRedirect(route('reservations.index', absolute: false));
+
+    Notification::assertNothingSent();
+});
+
+test('does not send verification notification if email is verified for an admin', function () {
+    Notification::fake();
+
+    $user = User::factory()->admin()->create();
 
     $this->actingAs($user)
         ->post(route('verification.send'))

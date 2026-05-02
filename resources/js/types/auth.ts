@@ -2,6 +2,7 @@ export type User = {
     id: number;
     nom: string;
     email: string;
+    role: 'client' | 'admin';
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
@@ -11,7 +12,7 @@ export type User = {
 };
 
 export type Auth = {
-    user: User;
+    user: User | null;
 };
 
 export type TwoFactorSetupData = {

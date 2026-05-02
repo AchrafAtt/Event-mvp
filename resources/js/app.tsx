@@ -14,6 +14,9 @@ createInertiaApp({
         switch (true) {
             case name === 'welcome':
                 return null;
+            // Admin dashboard is a full-page shell (see resources/js/pages/dashboard.tsx).
+            case name === 'dashboard':
+                return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):

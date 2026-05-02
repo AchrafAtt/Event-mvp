@@ -5,22 +5,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 **Start dev server** (runs Laravel, queue worker, Pail log viewer, and Vite concurrently):
+
 ```bash
 composer run dev
 ```
 
 **Run tests:**
+
 ```bash
 php artisan test --compact               # all tests
 php artisan test --compact --filter=Name # specific test
 ```
 
 **Lint & format PHP:**
+
 ```bash
 vendor/bin/pint --dirty --format agent  # fix changed files
 ```
 
 **Lint & format JS/TS:**
+
 ```bash
 npm run lint          # fix ESLint issues
 npm run format        # fix Prettier issues
@@ -28,19 +32,47 @@ npm run types:check   # TypeScript type check
 ```
 
 **Build frontend:**
+
 ```bash
 npm run build
 ```
 
 **Full CI check (lint + types + tests):**
+
 ```bash
 composer run ci:check
 ```
 
 **Generate Wayfinder route functions** (run after adding/changing controllers or routes):
+
 ```bash
 php artisan wayfinder:generate
 ```
+
+## Domain
+
+This is an **event services reservation platform**. Clients book event decoration/animation services (births, birthdays, graduations, weddings, etc.), and admins manage bookings and payments.
+
+### User Roles
+
+`User.role` is either `client` or `admin`. There is no role middleware on the admin routes yet — authorization must be enforced manually.
+
+### Reservation Workflow
+
+`Reservation.statut` transitions: `en_attente` → `confirmee` | `annulee`. Each reservation has:
+
+- one `Evenement` (event details: date, location, type, guest count, type-specific fields)
+- one optional `Personnalisation` (decoration style, custom text, pricing breakdown)
+- many `Paiement`s (advance payments), each with many `RecuPaiement`s (uploaded proof files)
+
+`CoordonneesBancaires` is a standalone model (bank transfer details shown to clients).
+
+### Dual-Area Architecture
+
+- **Client area** (`/reservations`): create reservation (wizard), list own reservations, view detail, upload payment proof.
+- **Admin area** (`/admin/*`): view all reservations with search/filter, change statut, validate/refuse payments, global stats dashboard.
+
+Admin pages live under `resources/js/pages/admin/`, client reservation pages under `resources/js/pages/reservations/`.
 
 ## Architecture
 
@@ -48,8 +80,8 @@ This is a Laravel 13 + Inertia v3 + React 19 SPA. The PHP backend serves pages v
 
 ### Backend
 
-- **Routes**: `routes/web.php` (home + dashboard) and `routes/settings.php` (profile/security/appearance). Auth routes are registered automatically by Fortify.
-- **Controllers**: `app/Http/Controllers/Settings/` — `ProfileController` and `SecurityController` handle settings pages.
+- **Routes**: `routes/web.php` (home, client reservations, admin area) and `routes/settings.php` (profile/security/appearance). Auth routes are registered automatically by Fortify.
+- **Controllers**: `app/Http/Controllers/` for client-facing; `app/Http/Controllers/Admin/` for the admin area; `app/Http/Controllers/Settings/` for settings pages.
 - **Authentication**: Managed by Laravel Fortify (`app/Actions/Fortify/`, `app/Providers/FortifyServiceProvider.php`). Supports login, registration, 2FA (TOTP), password reset, email verification.
 - **Shared Inertia props**: Defined in `app/Http/Middleware/HandleInertiaRequests.php` — shares `name`, `auth.user`, and `sidebarOpen` to all pages.
 - **Database**: SQLite (dev). Migrations in `database/migrations/`.
@@ -57,13 +89,60 @@ This is a Laravel 13 + Inertia v3 + React 19 SPA. The PHP backend serves pages v
 ### Frontend
 
 - **Entry point**: `resources/js/app.tsx` — bootstraps Inertia and assigns layouts automatically by page name prefix (`auth/*` → `AuthLayout`, `settings/*` → `[AppLayout, SettingsLayout]`, default → `AppLayout`).
-- **Pages**: `resources/js/pages/` — Inertia page components. Auth pages under `auth/`, settings under `settings/`.
+- **Pages**: `resources/js/pages/` — Inertia page components. Auth pages under `auth/`, settings under `settings/`, client reservation pages under `reservations/`, admin pages under `admin/`.
 - **Layouts**: `resources/js/layouts/` — `app-layout.tsx` wraps the sidebar layout; `auth-layout.tsx` wraps auth pages. The sidebar layout uses shadcn/ui `<Sidebar>`.
 - **Components**: `resources/js/components/` — app-specific components (sidebar, nav, header, etc.). `resources/js/components/ui/` — shadcn/ui primitives (button, input, dialog, etc.).
 - **Wayfinder**: Auto-generated TypeScript route functions live in `resources/js/actions/` (by controller) and `resources/js/routes/` (by named route). Always import from these instead of hardcoding URLs.
 - **Styles**: Tailwind v4 via `resources/css/app.css`.
 - **Types**: `resources/js/types/` — shared TypeScript types (`auth.ts`, `navigation.ts`, `ui.ts`).
 - **Hooks**: `resources/js/hooks/` — custom hooks including `use-appearance` (light/dark theme), `use-flash-toast`, `use-two-factor-auth`.
+
+## 🎨 Design System — Color Palette
+
+All colors are defined as CSS variables in `resources/css/app.css` and mapped in `tailwind.config.js`.
+Never use hardcoded hex values in JSX/TSX — always use Tailwind utilities.
+
+### Tokens
+
+| Token                    | Value     | Usage                            |
+| ------------------------ | --------- | -------------------------------- |
+| `--color-primary`        | `#E91E63` | Buttons, titles, active elements |
+| `--color-primary-soft`   | `#F06292` | Hover states, badges             |
+| `--color-bg-global`      | `#F5F5F5` | Page background (`<body>`)       |
+| `--color-bg-card`        | `#FCE4EC` | Card / soft section backgrounds  |
+| `--color-bg-white`       | `#FFFFFF` | Card surface, modals             |
+| `--color-text-primary`   | `#333333` | Main body text                   |
+| `--color-text-secondary` | `#777777` | Muted / helper text              |
+| `--color-border`         | `#E0E0E0` | All borders and input outlines   |
+| `--color-success`        | `#4CAF50` | Success / confirmation           |
+| `--color-error`          | `#F44336` | Error / destructive              |
+| `--color-admin`          | `#3F51B5` | Admin-only UI elements           |
+
+### Rules
+
+- **Page background:** `bg-bg-global` on root layout
+- **Cards:** `bg-white border border-border rounded-xl`
+- **Soft sections:** `bg-bg-card` (`#FCE4EC`)
+- **Buttons:** use shadcn `<Button>` — `variant="default"` maps to `--primary`
+- **Inputs:** `border-border rounded-md focus-visible:ring-primary`
+- **Success/error text:** `text-success` / `text-error`
+- **Border radius:** buttons `rounded-lg`, cards `rounded-xl`, inputs `rounded-md`
+- **DO NOT** use `style={{ color: '#E91E63' }}` inline — use Tailwind utilities only
+- **DO NOT** add new colors without updating `app.css` and `tailwind.config.js` first
+
+## 🖼️ Landing Page Reference
+
+The file `docs/landing-reference.html` is the **design reference** for the public landing page.
+
+When building `resources/js/pages/home.tsx` (or the welcome page), follow this reference exactly:
+
+- **Sections in order:** Nav → Hero → Services → Events → How it works → Testimonials → Contact CTA → Footer
+- **Fonts:** `Cormorant Garamond` (serif, for headings) + `Lato` (sans-serif, for body). Import from Google Fonts in `app.css`.
+- **Color tokens:** use the CSS variables defined in this CLAUDE.md (`--color-primary`, etc.) — do NOT copy the `oklch()` values from the HTML file, map them to our palette instead.
+- **Animations:** scroll reveal (`data-reveal` + IntersectionObserver) → convert to a `useScrollReveal` custom hook in `resources/js/hooks/`.
+- **Inertia links:** replace all `<a href="#">` that point to internal pages with `<Link>` from `@inertiajs/react`.
+- **Wayfinder:** use generated route functions for the reservation CTA button (`/reservations/create`).
+- **No raw CSS:** translate all styles to Tailwind utilities. Inline styles are not allowed.
 
 <laravel-boost-guidelines>
 === foundation rules ===
@@ -164,7 +243,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 - Execute PHP in app context for debugging and testing code. Do not create models without user approval, prefer tests with factories instead. Prefer existing Artisan commands over custom tinker code.
 - Always use single quotes to prevent shell expansion: `php artisan tinker --execute 'Your::code();'`
-  - Double quotes for PHP strings inside: `php artisan tinker --execute 'User::where("active", true)->count();'`
+    - Double quotes for PHP strings inside: `php artisan tinker --execute 'User::where("active", true)->count();'`
 
 === php rules ===
 

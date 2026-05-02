@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Booking / contact
+    |--------------------------------------------------------------------------
+    |
+    | WhatsApp business number for client CTAs (digits only, with country code,
+    | e.g. 212612345678). Used on the reservation confirmation page.
+    |
+    */
+
+    'whatsapp_phone' => env('WHATSAPP_PHONE'),
+
 ];

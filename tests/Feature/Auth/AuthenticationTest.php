@@ -10,8 +10,20 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('clients are redirected to reservations after login', function () {
+    $user = User::factory()->create(['role' => 'client']);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('reservations.index', absolute: false));
+});
+
+test('admins are redirected to the dashboard after login', function () {
+    $user = User::factory()->admin()->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,

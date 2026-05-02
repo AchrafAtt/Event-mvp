@@ -1,0 +1,22 @@
+---
+description: Inertia React and Tailwind frontend standards
+globs: resources/js/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Event GH Frontend Standards
+
+## Inertia and Routing
+- Build screens as Inertia React pages under `resources/js/pages`.
+- Do not hardcode internal URLs in React code.
+- Use Wayfinder route/action imports from `@/routes/*` and `@/actions/*`.
+- Regenerate route functions after route/controller changes: `php artisan wayfinder:generate`.
+
+## UI and Styling
+- Use Tailwind utilities in JSX/TSX; avoid inline hardcoded color styles.
+- Reuse design tokens from `resources/css/app.css` (for example `bg-bg-global`, `border-border`, `text-success`).
+- Prefer existing shared components (`resources/js/components` and `resources/js/components/ui`) before creating new ones.
+
+## App Structure
+- Keep page/layout conventions from `resources/js/app.tsx`.
+- Follow existing admin/client split under `resources/js/pages/admin` and `resources/js/pages/reservations`.

@@ -1,0 +1,18 @@
+---
+description: Testing and verification checklist for any change
+alwaysApply: true
+---
+
+# Event GH Quality Gates
+
+## Required Verification
+- Every behavior change needs automated test coverage (new test or test update).
+- Run the minimum relevant test scope first (`php artisan test --compact --filter=...`), then broaden if needed.
+
+## Language-Specific Checks
+- For PHP changes: run `vendor/bin/pint --dirty --format agent`.
+- For JS/TS changes: use `npm run lint`, `npm run format`, and `npm run types:check` when relevant.
+
+## Build and Runtime Sanity
+- If frontend assets appear stale, run `npm run dev`, `npm run build`, or `composer run dev`.
+- Keep fixes aligned with existing architecture and avoid unrelated refactors during feature work.
