@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatutReservation;
 use App\Models\Paiement;
 use App\Models\Reservation;
 use App\Models\User;
@@ -17,9 +18,9 @@ class DashboardController extends Controller
     {
         $stats = [
             'total_reservations' => Reservation::query()->count(),
-            'reservations_en_attente' => Reservation::query()->where('statut', 'en_attente')->count(),
-            'reservations_confirmees' => Reservation::query()->where('statut', 'confirmee')->count(),
-            'reservations_annulees' => Reservation::query()->where('statut', 'annulee')->count(),
+            'reservations_en_attente' => Reservation::query()->where('statut', StatutReservation::EnAttente)->count(),
+            'reservations_confirmees' => Reservation::query()->where('statut', StatutReservation::Confirmee)->count(),
+            'reservations_annulees' => Reservation::query()->where('statut', StatutReservation::Annulee)->count(),
             'paiements_en_attente' => Paiement::query()->where('statut_paiement', 'en_attente')->count(),
             'total_clients' => User::query()->where('role', 'client')->count(),
             'revenus_total' => Paiement::query()->where('statut_paiement', 'confirme')->sum('montant_avance'),
@@ -63,7 +64,7 @@ class DashboardController extends Controller
             'date_display' => $reservation->date_reservation->format('d/m/Y'),
             'prix_total' => (float) $reservation->prix_total,
             'prix_total_display' => number_format((float) $reservation->prix_total, 0, ',', ' ').' DH',
-            'statut' => $reservation->statut,
+            'statut' => $reservation->statut->value,
             'payment_badge' => $paymentBadge,
         ];
     }

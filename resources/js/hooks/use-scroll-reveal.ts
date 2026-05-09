@@ -2,14 +2,20 @@ import { useEffect } from 'react';
 
 export function useScrollReveal(): void {
     useEffect(() => {
-        const revealElements = document.querySelectorAll<HTMLElement>('[data-reveal]');
+        const revealElements =
+            document.querySelectorAll<HTMLElement>('[data-reveal]');
 
         if (revealElements.length === 0) {
             return;
         }
 
         revealElements.forEach((element) => {
-            element.classList.add('opacity-0', 'translate-y-6', 'transition-all', 'duration-700');
+            element.classList.add(
+                'opacity-0',
+                'translate-y-6',
+                'transition-all',
+                'duration-700',
+            );
         });
 
         const observer = new IntersectionObserver(

@@ -34,10 +34,7 @@ export function AppSidebar() {
     const page = usePage();
     const role = page.props.auth.user?.role;
 
-    const mainNavItems = useMemo<NavItem[]>(
-        () => getAppMainNav(role),
-        [role],
-    );
+    const mainNavItems = useMemo<NavItem[]>(() => getAppMainNav(role), [role]);
 
     const homeHref = useMemo(() => getAppHomeHref(role), [role]);
 
@@ -60,7 +57,9 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+                {role === 'admin' ? (
+                    <NavFooter items={footerNavItems} className="mt-auto" />
+                ) : null}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

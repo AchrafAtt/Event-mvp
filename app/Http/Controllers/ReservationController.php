@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\IssueReservationTicketQr;
+use App\Enums\StatutReservation;
 use App\Enums\TypeEvenement;
 use App\Enums\TypeOffre;
 use App\Models\CoordonneesBancaires;
@@ -137,6 +139,10 @@ class ReservationController extends Controller
 
         $reservation->loadMissing(['evenement']);
 
+        app(IssueReservationTicketQr::class)->ensureIssuedIfConfirmed($reservation);
+        $reservation->refresh();
+        $reservation->loadMissing(['evenement']);
+
         return Inertia::render('reservations/confirmation', [
             'reservation' => [
                 'id' => $reservation->id,
@@ -145,10 +151,12 @@ class ReservationController extends Controller
                 'avance' => $reservation->avance,
                 'reste_a_payer' => $reservation->reste_a_payer,
                 'type_offre' => $reservation->type_offre->value,
-                'statut' => $reservation->statut,
+                'statut' => $reservation->statut->value,
                 'date_reservation' => $reservation->date_reservation->format('Y-m-d'),
                 'evenement_label' => $reservation->evenement?->type_evenement->value ?? '',
             ],
+            'ticketQrUrl' => $reservation->ticketQrAbsoluteUrl(),
+            'ticketVerifyUrl' => $reservation->ticketVerifyAbsoluteUrl(),
             'whatsappUrl' => $this->whatsappContactUrl(),
         ]);
     }
@@ -207,7 +215,7 @@ class ReservationController extends Controller
                 'date_reservation' => $validated['date_reservation'],
                 'remarques' => $validated['remarques'] ?? null,
                 'reference' => 'REF-'.strtoupper(uniqid()),
-                'statut' => 'en_attente',
+                'statut' => StatutReservation::EnAttente,
                 'prix_total' => $prixTotal,
                 'avance' => $avance,
                 'reste_a_payer' => $resteAPayer,
@@ -286,7 +294,7 @@ class ReservationController extends Controller
         $reservation = $request->user()->reservations()->create([
             ...$validated,
             'reference' => 'REF-'.strtoupper(uniqid()),
-            'statut' => 'en_attente',
+            'statut' => StatutReservation::EnAttente,
         ]);
 
         $reservation->evenement()->create($validated['evenement']);
@@ -305,8 +313,15 @@ class ReservationController extends Controller
 
         $reservation->load(['evenement', 'personnalisation', 'paiements.recus']);
 
+        app(IssueReservationTicketQr::class)->ensureIssuedIfConfirmed($reservation);
+        $reservation->refresh();
+        $reservation->load(['evenement', 'personnalisation', 'paiements.recus']);
+
         return Inertia::render('reservations/show', [
             'reservation' => $reservation,
+            'ticketQrUrl' => $reservation->ticketQrAbsoluteUrl(),
+            'ticketVerifyUrl' => $reservation->ticketVerifyAbsoluteUrl(),
+            'whatsappUrl' => $this->whatsappContactUrl(),
         ]);
     }
 

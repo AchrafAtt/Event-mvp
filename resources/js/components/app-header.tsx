@@ -60,10 +60,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
     const { auth } = page.props;
     const role = auth.user?.role;
-    const mainNavItems = useMemo<NavItem[]>(
-        () => getAppMainNav(role),
-        [role],
-    );
+    const mainNavItems = useMemo<NavItem[]>(() => getAppMainNav(role), [role]);
     const homeHref = useMemo(() => getAppHomeHref(role), [role]);
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();

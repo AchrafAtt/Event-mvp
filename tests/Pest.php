@@ -3,6 +3,20 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+(static function (): void {
+    $root = dirname(__DIR__);
+    $configCache = $root.'/bootstrap/cache/config.php';
+    if (is_file($configCache)) {
+        @unlink($configCache);
+    }
+
+    foreach (glob($root.'/bootstrap/cache/routes-*.php') ?: [] as $routesCache) {
+        if (is_file($routesCache)) {
+            @unlink($routesCache);
+        }
+    }
+})();
+
 /*
 |--------------------------------------------------------------------------
 | Test Case

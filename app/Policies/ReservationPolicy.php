@@ -9,6 +9,6 @@ class ReservationPolicy
 {
     public function view(User $user, Reservation $reservation): bool
     {
-        return $user->id === $reservation->user_id;
+        return $user->id === $reservation->user_id || $user->role === 'admin';
     }
 }

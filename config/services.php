@@ -47,4 +47,28 @@ return [
 
     'whatsapp_phone' => env('WHATSAPP_PHONE'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | QR ticket microservice (Python FastAPI, see services/qr-ticket/)
+    |--------------------------------------------------------------------------
+    */
+
+    'qr_ticket' => [
+        'url' => env('QR_TICKET_SERVICE_URL'),
+        'key' => env('QR_TICKET_SERVICE_KEY'),
+        'timeout' => (int) env('QR_TICKET_TIMEOUT', 10),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Analytics chart service (Python FastAPI, see services/analytics/)
+    |--------------------------------------------------------------------------
+    */
+
+    'analytics' => [
+        'url' => env('ANALYTICS_SERVICE_URL'),
+        'key' => env('ANALYTICS_SERVICE_KEY'),
+        'timeout' => (int) env('ANALYTICS_TIMEOUT', 30),
+    ],
+
 ];

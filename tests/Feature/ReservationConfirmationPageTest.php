@@ -39,7 +39,9 @@ test('authenticated users can view confirmation for their own reservation', func
     $response->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->component('reservations/confirmation')
         ->where('reservation.reference', 'REF-TESTCONFIRM')
-        ->where('reservation.type_offre', 'Standard'));
+        ->where('reservation.type_offre', 'Standard')
+        ->where('ticketQrUrl', null)
+        ->where('ticketVerifyUrl', null));
 });
 
 test('users cannot view confirmation for another users reservation', function () {
