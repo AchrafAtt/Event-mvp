@@ -3,21 +3,36 @@ WORKDIR /var/www
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
 
-FROM node:20-alpine AS frontend_builder
+# PHP + Node: @laravel/vite-plugin-wayfinder shells out to `php artisan wayfinder:generate --with-form` during `vite build`.
+FROM php:8.4-cli-alpine AS frontend_builder
 WORKDIR /var/www
+
+RUN apk add --no-cache \
+    bash \
+    git \
+    nodejs \
+    npm \
+    libzip-dev \
+    oniguruma-dev \
+    postgresql-dev \
+    icu-dev \
+    linux-headers \
+    $PHPIZE_DEPS \
+    && docker-php-ext-install -j$(nproc) intl mbstring pdo_pgsql zip \
+    && apk del --no-network $PHPIZE_DEPS
+
+COPY --from=composer_deps /var/www/vendor ./vendor
 COPY package*.json ./
 RUN npm install --no-audit --no-fund
-COPY resources ./resources
-COPY public ./public
-COPY vite.config.ts tsconfig.json .
-COPY eslint.config.js .
-COPY components.json .
-COPY tailwind.config.js .
-COPY postcss.config.js .
-COPY resources/js/wayfinder.ts ./resources/js/wayfinder.ts
-RUN npm run build
+COPY . .
 
-FROM php:8.3-fpm-alpine AS app
+ENV APP_ENV=production \
+    APP_DEBUG=false
+
+RUN export APP_KEY="$(php -r 'echo "base64:".base64_encode(random_bytes(32));')" \
+    && npm run build
+
+FROM php:8.4-fpm-alpine AS app
 WORKDIR /var/www
 
 RUN apk add --no-cache \
