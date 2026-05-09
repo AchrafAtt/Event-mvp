@@ -39,6 +39,7 @@ RUN apk add --no-cache \
     bash \
     curl \
     git \
+    su-exec \
     libzip-dev \
     oniguruma-dev \
     postgresql-dev \
@@ -51,11 +52,15 @@ RUN apk add --no-cache \
 COPY --from=composer_deps /var/www/vendor ./vendor
 COPY . .
 COPY --from=frontend_builder /var/www/public/build ./public/build
+COPY docker/app/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN mkdir -p storage/framework/{cache,sessions,testing,views} storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R ug+rwx storage bootstrap/cache
+    && chmod -R ug+rwx storage bootstrap/cache \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-USER www-data
+USER root
+
 EXPOSE 9000
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["php-fpm", "-F"]
